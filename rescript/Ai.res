@@ -118,6 +118,7 @@ let validate = graph =>
 
 let graphToBoard = (graph: generatedGraph): board => {
   let columns = Math.ceil(graph.nodes->Array.length->Int.toFloat->Math.sqrt)->Float.toInt
+  let rows = Math.ceil(graph.nodes->Array.length->Int.toFloat /. columns->Int.toFloat)->Float.toInt
   let layers =
     graph.layers->Array.length == 0
       ? [groundLayer]
@@ -130,6 +131,8 @@ let graphToBoard = (graph: generatedGraph): board => {
   let shapes = graph.nodes->Array.mapWithIndex((node, index) => {
     let column = index % columns
     let row = index / columns
+    let width = node.kind == "text" ? 240.0 : 150.0
+    let height = node.kind == "text" ? 72.0 : 110.0
     let layer =
       node.layer < 0
         ? 0
@@ -139,14 +142,14 @@ let graphToBoard = (graph: generatedGraph): board => {
     {
       id: node.id,
       kind: node.kind,
-      x: (column->Int.toFloat -. (columns - 1)->Int.toFloat /. 2.0) *. 260.0 -. 90.0,
-      y: row->Int.toFloat *. 190.0 -. 160.0,
-      w: node.kind == "text" ? 220.0 : 180.0,
-      h: node.kind == "text" ? 60.0 : 110.0,
+      x: (column->Int.toFloat -. (columns - 1)->Int.toFloat /. 2.0) *. 610.0 -. width /. 2.0,
+      y: (row->Int.toFloat -. (rows - 1)->Int.toFloat /. 2.0) *. 240.0 -. height /. 2.0,
+      w: width,
+      h: height,
       label: node.label,
       fill: node.kind == "text" ? noFill : node.color,
       layer,
-      fontSize: 24,
+      fontSize: 48,
       src: None,
       icon: node.icon == "" ? None : Some(node.icon),
     }
@@ -161,7 +164,7 @@ let graphToBoard = (graph: generatedGraph): board => {
       to_: edge.to_,
       label: edge.label,
       directed: edge.directed,
-      fontSize: 20,
+      fontSize: 48,
       cx: None,
       cy: None,
     })

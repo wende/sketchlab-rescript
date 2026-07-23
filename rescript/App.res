@@ -442,11 +442,18 @@ module LayersPanel = {
         <span> {React.string("Floor spread")} </span>
         <input
           type_="range"
-          min="8"
-          max="80"
-          value="26"
+          min="70"
+          max="1400"
+          value={view.floorStep->Float.toString}
           disabled={board.layers->Array.length < 2}
           ariaLabel="Floor spread"
+          onChange={event => {
+            let raw = event->Browser.formTarget->Browser.targetValue
+            switch raw->Float.fromString {
+            | Some(value) => onView({...view, floorStep: value})
+            | None => ()
+            }
+          }}
         />
       </label>
     </aside>
@@ -649,9 +656,9 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
   let (tool, setTool) = React.useState(() => "select")
   let (spacePressed, setSpacePressed) = React.useState(() => false)
   let (selection, setSelection) = React.useState(() => NoSelection)
-  let (view, setView) = React.useState(() => defaultView)
+  let (view, setView) = React.useState(() => Perspective.fitView(initialBoard))
   let (fill, setFill) = React.useState(() => "#0f2740")
-  let (fontSize, setFontSize) = React.useState(() => 24)
+  let (fontSize, setFontSize) = React.useState(() => 48)
   let (drawerOpen, setDrawerOpen) = React.useState(() => false)
   let (layersOpen, setLayersOpen) = React.useState(() => true)
   let (settingsOpen, setSettingsOpen) = React.useState(() => false)
@@ -791,7 +798,7 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
     setBoard(_ => next)
     setShared(_ => false)
     setSelection(_ => NoSelection)
-    setView(_ => defaultView)
+    setView(_ => Perspective.fitView(next))
     Browser.navigateBoard(next.id)
     setDrawerOpen(_ => false)
     await refreshBoards()
@@ -803,7 +810,7 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
       setBoard(_ => next)
       setShared(_ => false)
       setSelection(_ => NoSelection)
-      setView(_ => defaultView)
+      setView(_ => Perspective.fitView(next))
       Browser.navigateBoard(next.id)
     | None => ()
     }
@@ -823,6 +830,7 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
           starter
         }
         setBoard(_ => next)
+        setView(_ => Perspective.fitView(next))
         Browser.navigateBoard(next.id)
       }
       await refreshBoards()
@@ -854,8 +862,8 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
           | Some(src) =>
             let image = Model.makeShape(
               ~kind="image",
-              ~x=-.view.panX /. view.zoom -. 120.0,
-              ~y=-.view.panY /. view.zoom -. 90.0,
+              ~x=view.focusX -. 120.0,
+              ~y=view.focusY -. 90.0,
               ~w=240.0,
               ~h=180.0,
               ~fill=noFill,
@@ -954,7 +962,9 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
           ariaLabel="Auto layout"
           title="Auto layout"
           onClick={_ => {
-            replaceBoard(BoardOps.autoLayout(board))
+            let next = BoardOps.autoLayout(board)
+            replaceBoard(next)
+            setView(_ => Perspective.fitView(next))
             showToast("Auto layout applied")
           }}
         >
@@ -1058,6 +1068,7 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
         className="btn btn--icon"
         type_="button"
         ariaLabel="Zoom out"
+        title="Zoom out"
         onClick={_ =>
           setView(current => {
             ...current,
@@ -1073,6 +1084,7 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
         className="btn btn--icon"
         type_="button"
         ariaLabel="Zoom in"
+        title="Zoom in"
         onClick={_ =>
           setView(current => {
             ...current,
@@ -1081,7 +1093,12 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
       >
         {React.string("+")}
       </button>
-      <button className="btn" type_="button" onClick={_ => setView(_ => defaultView)}>
+      <button
+        className="btn"
+        type_="button"
+        title="Fit to content"
+        onClick={_ => setView(_ => Perspective.fitView(board))}
+      >
         {React.string("Fit")}
       </button>
       <div className="zoombar__sep" />
@@ -1128,7 +1145,7 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
       <div className="field">
         <span> {React.string("Size")} </span>
         <div className="size-picker">
-          {[16, 20, 24, 32]
+          {[32, 48, 72]
           ->Array.mapWithIndex((size, index) =>
             <button
               key={size->Int.toString}
@@ -1226,7 +1243,7 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
           : {...generated, id: board.id, createdAt: board.createdAt}
         replaceBoard(next)
         setSelection(_ => NoSelection)
-        setView(_ => defaultView)
+        setView(_ => Perspective.fitView(next))
         showToast(modifying ? "Diagram modified" : "Diagram generated")
       }}
     />
@@ -1237,8 +1254,8 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
       onPick={(name, glyph) => {
         let shape = Model.makeShape(
           ~kind="icon",
-          ~x=-.view.panX /. view.zoom -. 90.0,
-          ~y=-.view.panY /. view.zoom -. 55.0,
+          ~x=view.focusX -. 75.0,
+          ~y=view.focusY -. 55.0,
           ~label=name,
           ~fill,
           ~layer=view.activeLayer,

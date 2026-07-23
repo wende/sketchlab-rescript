@@ -23,15 +23,24 @@
   touch-action: none;
   user-select: none;
   background:
-    radial-gradient(circle at 50% 35%, rgba(13, 98, 132, 0.28), transparent 52%),
-    linear-gradient(180deg, #071522 0%, #081a27 100%);
+    radial-gradient(circle at 50% 6%, #16263f 0%, #0e1a2e 38%, #0a121f 72%, #05080f 100%);
+}
+
+.diagram-field {
+  fill: #070d16;
+  stroke: #04070c;
+  stroke-width: 2;
 }
 
 .diagram-grid-line {
-  fill: none;
-  stroke: rgba(94, 180, 210, 0.11);
-  stroke-width: 1;
+  stroke: rgba(31, 74, 99, 0.28);
+  stroke-width: 0.8;
   vector-effect: non-scaling-stroke;
+}
+
+.diagram-grid-line.is-major {
+  stroke: rgba(56, 189, 248, 0.3);
+  stroke-width: 1.15;
 }
 
 .diagram-shape {
@@ -42,21 +51,40 @@
   cursor: grabbing;
 }
 
-.diagram-shape rect,
-.diagram-shape image {
-  filter: drop-shadow(0 18px 8px rgba(0, 0, 0, 0.32));
+.diagram-shape__shadow {
+  fill: rgba(1, 4, 8, 0.52);
+  transform: translate(7px, 10px);
+  pointer-events: none;
 }
 
-.diagram-shape.is-selected rect,
-.diagram-shape.is-selected image {
+.diagram-shape__walls {
+  stroke: rgba(71, 85, 105, 0.72);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.diagram-shape__top {
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.22));
+}
+
+.diagram-shape__face {
+  stroke: rgba(148, 163, 184, 0.2);
+  stroke-width: 0.75;
+  pointer-events: none;
+}
+
+.diagram-shape.is-selected .diagram-shape__top {
+  stroke-width: 2.5;
   filter:
-    drop-shadow(0 0 9px rgba(56, 189, 248, 0.75))
-    drop-shadow(0 18px 8px rgba(0, 0, 0, 0.32));
+    drop-shadow(0 0 4px rgba(56, 189, 248, 0.9))
+    drop-shadow(0 0 11px rgba(56, 189, 248, 0.52));
 }
 
-.diagram-shape.is-edge-source rect {
+.diagram-shape.is-edge-source .diagram-shape__top {
   stroke: #fbbf24;
-  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.82));
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.8));
 }
 
 .diagram-label {
@@ -68,6 +96,29 @@
   stroke-width: 4px;
   stroke-linejoin: round;
   pointer-events: none;
+}
+
+.diagram-label--free {
+  letter-spacing: 0.02em;
+}
+
+.diagram-nameplate {
+  pointer-events: none;
+}
+
+.diagram-nameplate polygon,
+.diagram-edge__label rect {
+  fill: rgba(22, 29, 38, 0.96);
+  stroke: rgba(59, 74, 90, 0.92);
+  stroke-width: 1.2;
+}
+
+.diagram-nameplate text,
+.diagram-edge__label text {
+  fill: #e8edf3;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.035em;
 }
 
 .diagram-code {
@@ -87,15 +138,43 @@
   pointer-events: none;
 }
 
-.diagram-edge path:not(.diagram-edge__hit) {
+.diagram-edge__glow,
+.diagram-edge__core,
+.diagram-edge__flow {
   fill: none;
-  stroke: #6ee7ff;
-  stroke-width: 3;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.82));
+  pointer-events: none;
 }
 
-.diagram-edge.is-selected path:not(.diagram-edge__hit) {
+.diagram-edge__glow {
+  stroke: rgba(34, 211, 238, 0.2);
+  stroke-width: 12;
+  filter: blur(2px);
+}
+
+.diagram-edge__core {
+  stroke: #a5f3fc;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.9));
+}
+
+.diagram-edge__flow {
+  stroke: #f0fdff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 1 34;
+  animation: diagram-flow 1.25s linear infinite;
+}
+
+@keyframes diagram-flow {
+  to {
+    stroke-dashoffset: -35;
+  }
+}
+
+.diagram-edge.is-selected .diagram-edge__core {
   stroke: #fbbf24;
   stroke-width: 4;
 }
@@ -118,12 +197,34 @@
 
 .diagram-floor {
   pointer-events: none;
+  --floor-color: #38bdf8;
 }
 
-.diagram-floor rect {
-  fill: rgba(15, 39, 64, 0.12);
-  stroke-width: 2;
+.diagram-floor__plate {
+  fill: transparent;
+}
+
+.diagram-floor.is-active .diagram-floor__plate {
+  fill: color-mix(in srgb, var(--floor-color) 11%, transparent);
+}
+
+.diagram-floor__glow,
+.diagram-floor__core {
+  fill: none;
   vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.diagram-floor__glow {
+  stroke: color-mix(in srgb, var(--floor-color) 34%, transparent);
+  stroke-width: 8;
+  filter: blur(3px);
+}
+
+.diagram-floor__core {
+  stroke: color-mix(in srgb, var(--floor-color) 74%, white);
+  stroke-width: 1.8;
 }
 
 .diagram-floor text {
@@ -134,11 +235,6 @@
 }
 
 .diagram-edge__label {
-  fill: #eaf8ff;
-  paint-order: stroke;
-  stroke: #06111d;
-  stroke-width: 5px;
-  font-weight: 700;
   pointer-events: none;
 }
 

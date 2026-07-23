@@ -114,15 +114,16 @@ let autoLayout = (board: board): board => {
     board
   } else {
     let columns = Math.ceil(count->Int.toFloat->Math.sqrt)->Float.toInt
-    let width = 260.0
-    let height = 190.0
+    let rows = Math.ceil(count->Int.toFloat /. columns->Int.toFloat)->Float.toInt
+    let width = 610.0
+    let height = 240.0
     let nextShapes = board.shapes->Array.mapWithIndex((shape, index) => {
       let column = index % columns
       let row = index / columns
       {
         ...shape,
         x: (column->Int.toFloat -. (columns - 1)->Int.toFloat /. 2.0) *. width -. shape.w /. 2.0,
-        y: row->Int.toFloat *. height -. 120.0,
+        y: (row->Int.toFloat -. (rows - 1)->Int.toFloat /. 2.0) *. height -. shape.h /. 2.0,
       }
     })
     touch({...board, shapes: nextShapes})

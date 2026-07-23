@@ -50,6 +50,9 @@ type view = {
   zoom: float,
   panX: float,
   panY: float,
+  focusX: float,
+  focusY: float,
+  floorStep: float,
   activeLayer: int,
 }
 
@@ -66,6 +69,9 @@ let defaultView = {
   zoom: 1.0,
   panX: 0.0,
   panY: 0.0,
+  focusX: 0.0,
+  focusY: 0.0,
+  floorStep: 220.0,
   activeLayer: 0,
 }
 
@@ -86,12 +92,12 @@ let makeShape = (
   ~kind,
   ~x,
   ~y,
-  ~w=180.0,
+  ~w=150.0,
   ~h=110.0,
   ~label="",
   ~fill="#0f2740",
   ~layer=0,
-  ~fontSize=24,
+  ~fontSize=48,
   ~src=?,
   ~icon=?,
   (),
@@ -110,7 +116,7 @@ let makeShape = (
   icon,
 }
 
-let makeEdge = (~from, ~to_, ~directed=false, ~label="", ~fontSize=20, ()): edge => {
+let makeEdge = (~from, ~to_, ~directed=false, ~label="", ~fontSize=48, ()): edge => {
   id: uid(),
   from,
   to_,
@@ -135,16 +141,54 @@ let emptyBoard = (~name="Untitled board", ()): board => {
 }
 
 let starterBoard = (): board => {
-  let left = makeShape(~kind="rect", ~x=-280.0, ~y=-55.0, ~label="hello", ())
-  let right = makeShape(~kind="rect", ~x=100.0, ~y=-55.0, ~label="world", ())
+  let left = makeShape(~kind="rect", ~x=-380.0, ~y=-55.0, ~label="hello", ())
+  let right = makeShape(~kind="rect", ~x=230.0, ~y=-55.0, ~label="world", ())
   let now = Date.now()
   {
     id: uid(),
     name: "Untitled board",
     shapes: [left, right],
-    edges: [makeEdge(~from=left.id, ~to_=right.id, ())],
+    edges: [makeEdge(~from=left.id, ~to_=right.id, ~directed=true, ())],
     layers: [groundLayer],
     createdAt: now,
     updatedAt: now,
+  }
+}
+
+let upgradeLegacyStarter = (board: board): board => {
+  if board.shapes->Array.length == 2 && board.edges->Array.length == 1 {
+    let hello = board.shapes->Array.find(shape =>
+      shape.label == "hello" &&
+      shape.kind == "rect" &&
+      shape.x == -280.0 &&
+      shape.y == -55.0 &&
+      shape.w == 180.0 &&
+      shape.h == 110.0
+    )
+    let world = board.shapes->Array.find(shape =>
+      shape.label == "world" &&
+      shape.kind == "rect" &&
+      shape.x == 100.0 &&
+      shape.y == -55.0 &&
+      shape.w == 180.0 &&
+      shape.h == 110.0
+    )
+    switch (hello, world) {
+    | (Some(helloShape), Some(worldShape)) =>
+      {
+        ...board,
+        shapes: board.shapes->Array.map(shape =>
+          shape.id == helloShape.id
+            ? {...shape, x: -380.0, w: 150.0, fontSize: 48}
+            : shape.id == worldShape.id
+            ? {...shape, x: 230.0, w: 150.0, fontSize: 48}
+            : shape
+        ),
+        edges: board.edges->Array.map(edge => {...edge, directed: true, fontSize: 48}),
+      }
+    | _ => board
+    }
+  } else {
+    board
   }
 }

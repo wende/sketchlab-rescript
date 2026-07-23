@@ -8,7 +8,9 @@ work across stacked floors, and share a compressed copy in one URL.
 
 - **Language:** ReScript 12 with fully typed records, variants, and JS bindings.
 - **UI:** ReScript React 0.15 on React 19.
-- **Rendering:** a retained SVG scene with zoom, pan, drag, resize, and layer offsets.
+- **Rendering:** a perspective-projected SVG scene with a 60° pinhole camera,
+  converging finite floor grid, extruded token pedestals, elevated floors, and
+  boundary-anchored glowing connectors.
 - **Persistence:** local browser storage with typed ReScript serialization.
 - **Sharing:** board JSON compressed by `lz-string` into a `?b=` URL.
 - **Generated diagrams:** JSON graph imports through `?g=` and optional direct
@@ -50,7 +52,8 @@ npm run preview   # serve the production build
 rescript/
   Model.res          typed board, shape, edge, layer, and selection model
   BoardOps.res       pure board transformations and auto-layout
-  BoardCanvas.res    SVG scene and pointer/drop interaction state machine
+  BoardCanvas.res    projected SVG scene and pointer/drop interaction state machine
+  Perspective.res    camera projection, inverse hit mapping, fit, and floor bounds
   App.res            ReScript React editor, panels, routing actions, and history
   Persistence.res    local board storage
   Share.res          compressed board links

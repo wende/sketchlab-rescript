@@ -9,7 +9,7 @@ let resolveStoredBoard = (): board => {
   | None => boards->Array.get(0)
   }
   let board = switch selected {
-  | Some(board) => board
+  | Some(board) => Model.upgradeLegacyStarter(board)
   | None =>
     let starter = Model.starterBoard()
     Persistence.saveBoardsSync([starter])

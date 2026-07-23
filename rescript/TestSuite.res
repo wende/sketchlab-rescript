@@ -91,6 +91,101 @@ check(
 check("zoom lower bound", BoardOps.clampZoom(0.01) == 0.2)
 check("zoom upper bound", BoardOps.clampZoom(9.0) == 4.0)
 
+let projected = Perspective.project(
+  ~x=150.0,
+  ~y=300.0,
+  ~view=Model.defaultView,
+  ~width=800.0,
+  ~heightPx=600.0,
+  (),
+)
+let unprojected = Perspective.unprojectAt(
+  projected.sx,
+  projected.sy,
+  Model.defaultView,
+  0.0,
+  ~width=800.0,
+  ~heightPx=600.0,
+)
+check(
+  "perspective projection round trip",
+  switch unprojected {
+  | Some(point) => Math.abs(point.x -. 150.0) < 0.000001 && Math.abs(point.y -. 300.0) < 0.000001
+  | None => false
+  },
+)
+let farLeft = Perspective.project(
+  ~x=-500.0,
+  ~y=-400.0,
+  ~view=Model.defaultView,
+  ~width=800.0,
+  ~heightPx=600.0,
+  (),
+)
+let farRight = Perspective.project(
+  ~x=500.0,
+  ~y=-400.0,
+  ~view=Model.defaultView,
+  ~width=800.0,
+  ~heightPx=600.0,
+  (),
+)
+let nearLeft = Perspective.project(
+  ~x=-500.0,
+  ~y=400.0,
+  ~view=Model.defaultView,
+  ~width=800.0,
+  ~heightPx=600.0,
+  (),
+)
+let nearRight = Perspective.project(
+  ~x=500.0,
+  ~y=400.0,
+  ~view=Model.defaultView,
+  ~width=800.0,
+  ~heightPx=600.0,
+  (),
+)
+check(
+  "perspective grid converges with depth",
+  farRight.sx -. farLeft.sx < nearRight.sx -. nearLeft.sx,
+)
+let groundPoint = Perspective.project(
+  ~x=0.0,
+  ~y=0.0,
+  ~view=Model.defaultView,
+  ~width=800.0,
+  ~heightPx=600.0,
+  (),
+)
+let raisedPoint = Perspective.project(
+  ~x=0.0,
+  ~y=0.0,
+  ~height=Perspective.pedestalHeight,
+  ~view=Model.defaultView,
+  ~width=800.0,
+  ~heightPx=600.0,
+  (),
+)
+check("pedestal height projects upward", raisedPoint.sy < groundPoint.sy)
+
+let legacyStarter = {
+  ...starter,
+  shapes: starter.shapes->Array.map(shape =>
+    shape.label == "hello"
+      ? {...shape, x: -280.0, w: 180.0, fontSize: 24}
+      : {...shape, x: 100.0, w: 180.0, fontSize: 24}
+  ),
+  edges: starter.edges->Array.map(edge => {...edge, directed: false, fontSize: 20}),
+}
+let upgradedStarter = Model.upgradeLegacyStarter(legacyStarter)
+check(
+  "legacy starter upgrades to perspective defaults",
+  upgradedStarter.shapes->Array.some(shape =>
+    shape.label == "hello" && shape.x == -380.0 && shape.w == 150.0 && shape.fontSize == 48
+  ) && upgradedStarter.edges->Array.every(edge => edge.directed && edge.fontSize == 48),
+)
+
 let shared = starter->Share.encodeBoard->Share.decodeBoard
 check(
   "share round trip",
