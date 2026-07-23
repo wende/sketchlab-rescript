@@ -986,7 +986,7 @@ let make = (~initialBoard: board, ~initialShared: bool) => {
         </button>
         <a
           className="btn btn--icon"
-          href="https://github.com/webdevcody/sketchlab.app"
+          href="https://github.com/wende/sketchlab-rescript"
           target="_blank"
           rel="noopener noreferrer"
           ariaLabel="Sketch Lab on GitHub"
