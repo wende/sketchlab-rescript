@@ -162,8 +162,8 @@
 }
 
 .diagram-edge__flow {
-  stroke: rgba(103, 232, 249, 0.56);
-  stroke-width: 7;
+  stroke: rgba(103, 232, 249, 0.22);
+  stroke-width: var(--flow-width, 5px);
   stroke-linecap: round;
   /*
    * Match the original Pixi flow ribbon: one 11px luminous pulse every 34px,
@@ -175,7 +175,7 @@
 
 .diagram-edge__flow-head {
   stroke: #ecfeff;
-  stroke-width: 5;
+  stroke-width: var(--flow-head-width, 3.4px);
   stroke-linecap: round;
   stroke-dasharray: 3 31;
   filter:

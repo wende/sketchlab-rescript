@@ -448,6 +448,8 @@ module EdgeView = {
         ~view,
         (),
       )
+      let flowWidth = Math.max(5.0, 8.0 *. labelPoint.scale)
+      let flowHeadWidth = Math.max(3.0, flowWidth *. 0.68)
       <g
         className={selected ? "diagram-edge is-selected" : "diagram-edge"}
         onPointerDown
@@ -460,7 +462,13 @@ module EdgeView = {
           markerEnd={edge.directed ? "url(#arrowhead)" : ""}
         />
         {edge.directed
-          ? <g className="diagram-edge__flow-pulse">
+          ? <g
+              className="diagram-edge__flow-pulse"
+              style={dict{
+                "--flow-width": flowWidth->Float.toString ++ "px",
+                "--flow-head-width": flowHeadWidth->Float.toString ++ "px",
+              }->styleFromDict}
+            >
               <path className="diagram-edge__flow" d={path} />
               <path className="diagram-edge__flow-head" d={path} />
             </g>
