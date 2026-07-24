@@ -4,6 +4,9 @@ type keyboardEvent
 type inputTarget
 type searchParams
 type eventTarget
+type canvasElement
+type canvasContext
+type textMetrics
 
 @val @return(nullable)
 external prompt: (string, string) => option<string> = "prompt"
@@ -48,10 +51,47 @@ external tagName: eventTarget => string = "tagName"
 @get
 external isContentEditable: eventTarget => bool = "isContentEditable"
 
+@val @scope("document")
+external createElement: string => canvasElement = "createElement"
+
+@send @return(nullable)
+external getCanvasContext: (canvasElement, string) => option<canvasContext> = "getContext"
+
+@set
+external setCanvasFont: (canvasContext, string) => unit = "font"
+
+@send
+external measureText: (canvasContext, string) => textMetrics = "measureText"
+
+@get
+external measuredWidth: textMetrics => float = "width"
+
 let isTypingEvent = event => {
   let target = event->eventTarget
   let tag = target->tagName
   tag == "INPUT" || tag == "TEXTAREA" || target->isContentEditable
+}
+
+let labelContext = ref(None)
+
+let measureLabelWidth = (~text, ~fontSize) => {
+  let context = switch labelContext.contents {
+  | Some(context) => Some(context)
+  | None =>
+    let next = createElement("canvas")->getCanvasContext("2d")
+    labelContext.contents = next
+    next
+  }
+  switch context {
+  | Some(context) =>
+    context->setCanvasFont(
+      "700 " ++ fontSize->Int.toString ++ "px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    )
+    let trackingCount = text->String.length > 0 ? text->String.length - 1 : 0
+    context->measureText(text)->measuredWidth +.
+    trackingCount->Int.toFloat *. 1.5
+  | None => text->String.length->Int.toFloat *. fontSize->Int.toFloat *. 0.49
+  }
 }
 
 @send

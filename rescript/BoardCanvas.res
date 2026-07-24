@@ -260,7 +260,7 @@ module ShapeView = {
     let labelWidth =
       Math.max(
         60.0,
-        shape.label->String.length->Int.toFloat *. shape.fontSize->Int.toFloat *. 0.58 +. 22.0,
+        Browser.measureLabelWidth(~text=shape.label, ~fontSize=shape.fontSize) +. 22.0,
       )
     let labelHeight = shape.fontSize->Int.toFloat *. 1.3 +. 10.0
     let labelTop = shape.y +. shape.h +. 10.0
@@ -459,7 +459,12 @@ module EdgeView = {
           d={path}
           markerEnd={edge.directed ? "url(#arrowhead)" : ""}
         />
-        {edge.directed ? <path className="diagram-edge__flow" d={path} /> : React.null}
+        {edge.directed
+          ? <g className="diagram-edge__flow-pulse">
+              <path className="diagram-edge__flow" d={path} />
+              <path className="diagram-edge__flow-head" d={path} />
+            </g>
+          : React.null}
         <path className="diagram-edge__hit" d={path} />
         {edge.label == ""
           ? React.null
